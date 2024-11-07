@@ -5,37 +5,36 @@ import bcrypt from 'bcryptjs';
 import cors from 'cors';
 import session from 'express-session';
 
-dotenv.config();
+dotenv.config({ path: '../.env' }); 
+
 const app = express();
 
-// CORS configuration to allow credentials
 app.use(cors({
-    origin: 'http://localhost:5173', // Replace with your frontend origin
+    origin: 'http://localhost:5173',  
     credentials: true
 }));
 
 app.use(express.json());
 
-// Set up session management
 app.use(
     session({
-        secret: 'duyanh@gmail.com',
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: true,
         cookie: {
-            secure: false,  // Set to true in production if using HTTPS
+            secure: false,  
             httpOnly: true,
-            maxAge: 3600000 // 1 hour expiration
+            maxAge: 3600000  
         }
     })
 );
 
 // Database connection
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: '',  // Empty password for root
-    database: "testlogin"
+    host: process.env.DB_HOST,  
+    user: process.env.DB_USER,  
+    password: process.env.DB_PASSWORD,  
+    database: process.env.DB_NAME  
 });
 
 // Register Route
@@ -63,7 +62,7 @@ app.post('/login', (req, res) => {
         const user = users[0];
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) return res.status(400).json({ error: 'Invalid password' });
-        
+
         req.session.user = {
             id: user.id,
             name: user.name,
